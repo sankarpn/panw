@@ -129,6 +129,17 @@ INFO  src.client   -> 200 in 0.611s
 
 ## Allure report (per-environment sections)
 
+**Live report (auto-published on every push to `main`):**
+**https://sankarpn.github.io/panw/**
+
+Open the **Behaviors** tab to see the two per-environment sections — `countries`
+and `weather`. The CI workflow regenerates and republishes the page on every
+successful run, so the URL always reflects the latest green build.
+
+The same report is also available as a downloadable **`test-report` artifact** on
+each Actions run (handy when you want to inspect a *failing* run's report).
+
+### Render locally
 `allure-pytest` records results; the **Allure CLI** renders the HTML report.
 
 ```powershell
