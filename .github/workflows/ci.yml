@@ -1,0 +1,123 @@
+name: CI
+
+# --- Assignment CI requirement: "Triggers on push to any branch" ---
+# The '**' glob matches every branch (but not tags), so any push runs the suite.
+on:
+  push:
+    branches:
+      - '**'
+
+# Least-privilege token: the job only needs to read the repo.
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test suite (both environments)
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      # --- Assignment CI requirement: "Sets up Python environment ..." ---
+      # 3.14 matches the project's dev interpreter. (The suite and pydantic run on
+      # 3.10+; pin to whatever your team standardizes on.)
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.14'
+          cache: pip
+
+      # --- Assignment CI requirement: "... installs dependencies" ---
+      # All runtime deps (pytest, requests, pyyaml, allure-pytest, pydantic) live in
+      # requirements.txt. truststore (requirements-dev.txt) is a Windows-only SSL
+      # shim, intentionally skipped on the Linux runner; conftest imports it optionally.
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r requirements.txt
+
+      # --- Assignment CI requirement: "Runs the full test suite" ---
+      # No --env flag => the environment fixture runs BOTH environments.
+      # --- Quality gate ---
+      # pytest exits non-zero if any test fails. The response-time SLA
+      # (max_response_time from environments.yaml) is enforced inside ApiClient,
+      # so an SLA breach surfaces as a failing test -> non-zero exit -> failed job.
+      # That makes this single step the gate for "any test fails OR quality gate breached".
+      - name: Run tests
+        run: |
+          pytest \
+            --alluredir=allure-results \
+            --junitxml=reports/junit.xml \
+            -ra -v
+
+      # --- Assignment CI requirement (Bonus): "Shows test summary in the job output" ---
+      # Parse the JUnit XML and append a markdown table to the job summary.
+      # Runs even when tests fail so the summary is always visible.
+      - name: Publish test summary
+        if: always()
+        run: |
+          python - <<'PY'
+          import os, glob, xml.etree.ElementTree as ET
+
+          total = failures = errors = skipped = 0
+          duration = 0.0
+          for path in glob.glob("reports/junit.xml"):
+              for ts in ET.parse(path).iter("testsuite"):
+                  total    += int(ts.get("tests", 0) or 0)
+                  failures += int(ts.get("failures", 0) or 0)
+                  errors   += int(ts.get("errors", 0) or 0)
+                  skipped  += int(ts.get("skipped", 0) or 0)
+                  duration += float(ts.get("time", 0) or 0)
+
+          passed = total - failures - errors - skipped
+          rows = [
+              "## Test summary",
+              "",
+              "| Result | Count |",
+              "| --- | ---: |",
+              f"| Passed | {passed} |",
+              f"| Failed | {failures} |",
+              f"| Errors | {errors} |",
+              f"| Skipped | {skipped} |",
+              f"| **Total** | **{total}** |",
+              f"| Duration | {duration:.2f}s |",
+          ]
+          out = os.environ.get("GITHUB_STEP_SUMMARY")
+          if out:
+              with open(out, "a", encoding="utf-8") as fh:
+                  fh.write("\n".join(rows) + "\n")
+          PY
+
+      # Allure HTML generation needs a JRE.
+      - name: Set up Java (for Allure CLI)
+        if: always()
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+
+      # --- Assignment CI requirement: "Uploads the test report (HTML or Allure)" ---
+      # Render the Allure results into a static HTML site. continue-on-error keeps a
+      # green build green if only report rendering hiccups; the raw results still upload.
+      - name: Generate Allure HTML report
+        if: always()
+        continue-on-error: true
+        run: |
+          npm install -g allure-commandline --silent
+          allure generate allure-results --clean -o allure-report
+
+      # --- Assignment CI requirement: "... as a pipeline artifact" ---
+      # Uploaded on success AND failure so a failing run still ships its report.
+      - name: Upload test report
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-report
+          path: |
+            allure-report
+            allure-results
+            reports/junit.xml
+          if-no-files-found: warn
+          retention-days: 14

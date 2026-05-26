@@ -1,0 +1,4 @@
+[
+  {"search_term": "germany", "expected_status": 200},
+  {"search_term": "not_a_real_country_xyz", "expected_status": 404}
+]

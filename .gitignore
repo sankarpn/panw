@@ -1,0 +1,19 @@
+# Python
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# pytest / generated reports
+.pytest_cache/
+reports/
+
+# Allure (generated at run time)
+allure-results/
+allure-report/
+
+# Claude Code local settings (machine-specific)
+.claude/settings.local.json
+
+# Private prep notes — not part of the deliverable. Delete this line to include it.
+INTERVIEW_NOTES.md
