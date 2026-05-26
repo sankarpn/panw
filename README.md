@@ -198,6 +198,12 @@ to the other environment", not a problem.
   yields a typed `Environment`. Tests use attribute access
   (`environment.client`, `environment.min_results_count`) — never dict keys,
   never the YAML file directly.
+- **`base_url` is injected into the client, not exposed as a test-visible
+  attribute.** The fixture reads `base_url` from YAML and builds the `ApiClient`
+  with it, so each test's `environment.client` targets the right API. Tests never
+  handle a raw URL — they call `environment.client.get(<descriptor path>)`. This
+  keeps URL assembly in the client/descriptor layer and out of test bodies, while
+  still satisfying "the fixture injects base_url" (YAML → fixture → client).
 - **Thresholds vs endpoint expectations are different things.**
   `max_response_time` and `min_results_count` are environment-wide and live in
   YAML. Endpoint-specific expectations (Europe's count floor, the temperature
