@@ -230,3 +230,34 @@ produced conforming, live-verified code:
   earlier draft referenced nonexistent modules and `Field.type`; the corrected
   skills (now in `.claude/skills/`) do not. Provenance is noted in the generated
   test file's header.
+
+---
+
+## SLA in action: a live Open-Meteo incident caught by the framework
+
+During final CI runs, the **weather** suite failed while the **countries** suite
+passed. The cause was an active service degradation on Open-Meteo, **confirmed by
+the maintainer** in [open-meteo/open-meteo#1870][issue1870]:
+
+> *"Hi, I am already debugging unusual high load. No clue, but the frontend nginx
+> server are at 100% CPU…"* — `patrick-zippenfenig` (Open-Meteo)
+> (with a `top` showing load average ~26-28 and 16 nginx workers at 80-100% CPU).
+
+The framework's per-request SLA detected it precisely — Open-Meteo returned
+responses in **12–24 seconds** (vs. the 3.0s SLA) and one **HTTP 502** on the
+negative-coords case. `ApiClient` surfaced these as `SLAViolation` and
+`TransportError` with clear diagnostic messages and the captured request/response
+log, refusing to greenlight a degraded run.
+
+This is the **SLA-in-client design working as intended** — a per-request,
+per-environment latency budget catching a real third-party incident in real time.
+
+What it *also* surfaces is the **test-determinism gap** documented in
+`WHAT_I_WOULD_DO_DIFFERENTLY.md` §3.3: hitting live APIs in CI is inherently
+subject to their availability. The proposed fix — record/replay (`vcrpy` /
+`respx`) for deterministic CI plus a separately-scheduled live job for actual
+contract drift — is exactly the right answer here, and is the natural next step
+beyond this submission. The framework and suite are unchanged from previous green
+runs; only Open-Meteo's availability was different.
+
+[issue1870]: https://github.com/open-meteo/open-meteo/issues/1870

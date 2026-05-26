@@ -175,6 +175,25 @@ section. (CI generates and uploads this report automatically — see below.)
 
 Download the `test-report` artifact from the workflow run to view the report.
 
+### A note on red CI runs and the live-API dependency
+
+The tests hit **live** public APIs, so CI is inherently sensitive to upstream
+availability. On at least one CI run, the **weather** suite went red while
+**countries** stayed green — caused by a real Open-Meteo service incident the
+maintainer confirmed in [open-meteo/open-meteo#1870][issue1870] ("frontend nginx
+servers at 100% CPU"). The framework's per-request SLA correctly flagged
+response times of 12–24s and a 502 from Open-Meteo's gateway, refusing to
+greenlight a degraded run — that's the SLA-in-client design working as intended.
+
+The remaining issue this surfaces is **test determinism under upstream
+incidents**, which is the gap `WHAT_I_WOULD_DO_DIFFERENTLY.md` §3.3 proposes
+addressing with record/replay (`vcrpy` / `respx`) for CI plus a separately
+scheduled live job for real contract drift. If a CI run is red and the failures
+are uniformly weather SLA breaches, re-run after Open-Meteo recovers — the same
+code passes when the API is healthy.
+
+[issue1870]: https://github.com/open-meteo/open-meteo/issues/1870
+
 ---
 
 ## How to interpret results
