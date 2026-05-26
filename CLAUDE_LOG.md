@@ -201,8 +201,7 @@ needs only a YAML block + descriptor + maybe a validator; zero edits to
 **Remaining follow-ups:**
 - Nested pydantic models for deeper structural checks (e.g. `name.common: str`
   instead of bare `dict`).
-- Record/replay (vcrpy/respx) for deterministic CI plus a scheduled live job — see
-  `WHAT_I_WOULD_DO_DIFFERENTLY.md` §3.3.
+- Record/replay (vcrpy/respx) for deterministic CI plus a scheduled live job.
 
 **Clean (confirmed by the audit):** thresholds flow only YAML→fixture; validators
 don't import descriptors; `expect_status` is correctly non-raising for negatives;
@@ -252,9 +251,8 @@ log, refusing to greenlight a degraded run.
 This is the **SLA-in-client design working as intended** — a per-request,
 per-environment latency budget catching a real third-party incident in real time.
 
-What it *also* surfaces is the **test-determinism gap** documented in
-`WHAT_I_WOULD_DO_DIFFERENTLY.md` §3.3: hitting live APIs in CI is inherently
-subject to their availability. The proposed fix — record/replay (`vcrpy` /
+What it *also* surfaces is a **test-determinism gap**: hitting live APIs in CI
+is inherently subject to their availability. The proposed fix — record/replay (`vcrpy` /
 `respx`) for deterministic CI plus a separately-scheduled live job for actual
 contract drift — is exactly the right answer here, and is the natural next step
 beyond this submission. The framework and suite are unchanged from previous green
