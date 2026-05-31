@@ -1,4 +1,4 @@
-CopyCLAUDE.md
+CLAUDE.md
 Project context for Claude Code. Read this before generating or editing any code.
 What this project is
 A pytest-based API test framework that runs the same validation logic
