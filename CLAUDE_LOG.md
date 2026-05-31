@@ -5,9 +5,6 @@ test framework. Written from the candidate's perspective; the technical events,
 file references, and agent timings below are real and reproducible against this
 repo's history.
 
-> Personalize the spots marked _(add your own note)_ with anything from your
-> earlier sessions you want to credit.
-
 ---
 
 ## Required reflections
