@@ -31,9 +31,10 @@ A `tests/test_<area>.py` file (or added function) that:
 ## Hard constraints (do not violate)
 - NO timing assertion — the client enforces the SLA. (framework-rules #1)
 - NO bare threshold literals. Env-wide floor = `environment.min_results_count`;
-  endpoint-specific expectations = descriptor attributes (e.g.
-  `FORECAST.temp_min_celsius`). Never `40` / `-80` / `60` inline.
-  (framework-rules #2, code-style #2)
+  endpoint-binding expectations (e.g. `spec.expected_min` on a region) live on the
+  descriptor; value-correctness bounds (e.g. plausible temperature range) live with
+  the validator (e.g. `TEMP_MIN_C` / `TEMP_MAX_C` in `src/validators/weather.py`).
+  Never `40` / `-80` / `60` inline. (framework-rules #2 + #3, code-style #2)
 - Read config via attribute access on `environment`, never dict keys. (code-style #3)
 - Paths/params come from the descriptor, not literals in the test. (code-style #4)
 - Data-driven tests parametrize from committed JSON, never inline data.
@@ -96,6 +97,7 @@ import pytest
 
 from src.descriptors import WeatherForecastSpec
 from src.validators import WeatherValidator
+from src.validators.weather import TEMP_MAX_C, TEMP_MIN_C
 from src.validators.base import assert_in_range, assert_min_count
 
 pytestmark = pytest.mark.weather   # module-scoped fixture resolves env from this
@@ -118,8 +120,8 @@ def test_forecast(environment, city):
     for temp in data.hourly_temps:
         assert_in_range(
             temp,
-            FORECAST.temp_min_celsius,                   # endpoint expectation (descriptor)
-            FORECAST.temp_max_celsius,
+            TEMP_MIN_C,                                  # value-correctness bound (validator side)
+            TEMP_MAX_C,
             label=f"{city['name']} temp",
         )
 ```

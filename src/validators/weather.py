@@ -1,5 +1,13 @@
 from pydantic import BaseModel, ConfigDict
 
+# Sanity range a real surface temperature can take, in degrees Celsius. Lives on
+# the validator side because it's a value-correctness check, not an endpoint
+# binding (framework-rules #3: descriptors describe requests, validators check
+# responses). Shared by both weather validators — Open-Meteo's current and hourly
+# series use the same scale; split if they ever need to diverge.
+TEMP_MIN_C = -80.0
+TEMP_MAX_C = 60.0
+
 # Response contract key holding the hourly temperature series. The validator knows
 # this as a contract fact; the descriptor names the same variable on the REQUEST
 # side (validators never import descriptors — framework-rules #3).

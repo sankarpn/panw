@@ -6,6 +6,7 @@ import pytest
 
 from src.descriptors import WeatherForecastSpec
 from src.validators import WeatherValidator
+from src.validators.weather import TEMP_MAX_C, TEMP_MIN_C
 from src.validators.base import assert_in_range, assert_min_count
 
 pytestmark = pytest.mark.weather
@@ -33,7 +34,7 @@ def test_forecast(environment, city):
     for temp in data.hourly_temps:
         assert_in_range(
             temp,
-            FORECAST.temp_min_celsius,
-            FORECAST.temp_max_celsius,
+            TEMP_MIN_C,
+            TEMP_MAX_C,
             label=f"{city['name']} temp",
         )

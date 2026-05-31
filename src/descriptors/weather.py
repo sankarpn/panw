@@ -5,13 +5,13 @@ from dataclasses import dataclass
 class WeatherForecastSpec:
     """Everything API-specific about the Open-Meteo forecast endpoint.
 
-    The path and expectation values live here, not in the test body.
+    The path and request params live here, not in the test body. Value-correctness
+    bounds (e.g. plausible temperature range) live with the validator — see
+    src/validators/weather.py.
     """
 
     path: str = "/forecast"
     hourly_variable: str = "temperature_2m"
-    temp_min_celsius: float = -80.0
-    temp_max_celsius: float = 60.0
 
     def params_for(self, city):
         return {
@@ -24,12 +24,13 @@ class WeatherForecastSpec:
 
 @dataclass(frozen=True)
 class CurrentWeatherSpec:
-    """Open-Meteo current-weather endpoint binding (same /forecast path, current=)."""
+    """Open-Meteo current-weather endpoint binding (same /forecast path, current=).
+
+    Value-correctness bounds live with the validator — see src/validators/weather.py.
+    """
 
     path: str = "/forecast"
     current_variable: str = "temperature_2m"
-    temp_min_celsius: float = -80.0
-    temp_max_celsius: float = 60.0
 
     def params_for(self, latitude, longitude):
         return {

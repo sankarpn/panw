@@ -10,6 +10,7 @@ import pytest
 
 from src.descriptors import CurrentWeatherSpec
 from src.validators import CurrentWeatherValidator
+from src.validators.weather import TEMP_MAX_C, TEMP_MIN_C
 from src.validators.base import assert_in_range
 
 pytestmark = pytest.mark.weather
@@ -35,7 +36,7 @@ def test_current_weather(environment, case):
     data = CurrentWeatherValidator.validate(response.json())
     assert_in_range(
         data.current_temp,
-        CURRENT.temp_min_celsius,
-        CURRENT.temp_max_celsius,
+        TEMP_MIN_C,
+        TEMP_MAX_C,
         label=f"{case['name']} current temp",
     )

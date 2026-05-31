@@ -125,6 +125,12 @@ Same effect in the weather suite: the rules turned literal `-80`/`60` range
 checks into `FORECAST.temp_min_celsius` / `FORECAST.temp_max_celsius` (descriptor
 attributes), and the timezone/hourly checks into a typed `WeatherValidator`.
 
+> **Follow-up (later refactor):** the temp range bounds were later moved off the
+> Spec descriptors and onto the validator side as `TEMP_MIN_C` / `TEMP_MAX_C`
+> module constants in `src/validators/weather.py`. Reason: value-correctness
+> bounds belong with the validator, not the request-side binding — framework-rules
+> #3. The lesson above still holds; only the address changed.
+
 ---
 
 ## Required Claude-usage tasks
