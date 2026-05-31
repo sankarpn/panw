@@ -4,11 +4,13 @@ from pathlib import Path
 import allure
 import pytest
 
-from src.descriptors import COUNTRIES
+from src.descriptors import CountriesDescriptor
 from src.lookups import common_name, region_of
 from src.validators import CountryValidator
 
 pytestmark = pytest.mark.countries  # this whole module targets the countries env
+
+COUNTRIES = CountriesDescriptor()  # explicit local instance; see CLAUDE_LOG re: singleton removal
 
 CASES = json.loads(
     (Path(__file__).parent.parent / "test_data" / "countries.json").read_text()

@@ -74,9 +74,21 @@ correctness; the docs and the `test-generator` skill were updated to match. Less
 "isolation" isn't automatically a virtue — fixture scope should match what the tests
 can actually contaminate, which here is nothing. This is the mirror of the classic
 "a shared singleton broke test isolation" mistake: here the error was the opposite —
-isolating (a fresh client per test) when nothing needed isolating. (The one actual
-singleton in the codebase, `COUNTRIES`, is safe precisely because it's a *frozen*,
-stateless dataclass — sharing it can't leak state.)
+isolating (a fresh client per test) when nothing needed isolating.
+
+> **Follow-up (later refactor — and itself a "where Claude was wrong" moment):**
+> the original version of this log defended a module-level
+> `COUNTRIES = CountriesDescriptor()` singleton as *"safe because it's frozen and
+> stateless — sharing it can't leak state."* Technically true. On a later review
+> pass the asymmetry was flagged — weather had no equivalent singleton — and
+> Claude's first instinct was to add `FORECAST` / `CURRENT` singletons to weather
+> for symmetry. I pushed back: the assignment explicitly cites singletons as a
+> code smell to question, and *"this one is fine because…"* is the kind of defense
+> you'd rather not have to give in a code review. So the singleton was removed
+> instead. Tests now construct `COUNTRIES = CountriesDescriptor()` locally,
+> mirroring `FORECAST = WeatherForecastSpec()` on the weather side. The frozen-
+> dataclass defense wasn't wrong — it was just a defense that didn't need to
+> exist. Symmetry achieved by deleting the thing, not by duplicating it.
 
 **Another miss — validator type resolution.** Claude's default/“generic” way to
 write a dataclass validator resolved each field's type from `dataclasses.Field.type`

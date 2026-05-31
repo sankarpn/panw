@@ -62,6 +62,3 @@ class CountriesDescriptor:
 
     def region_params(self):
         return {"fields": self.region_fields}
-
-
-COUNTRIES = CountriesDescriptor()

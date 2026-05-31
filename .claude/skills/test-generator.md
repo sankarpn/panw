@@ -63,10 +63,12 @@ from pathlib import Path
 import allure
 import pytest
 
-from src.descriptors import COUNTRIES
+from src.descriptors import CountriesDescriptor
 from src.validators import CountryValidator
 
 pytestmark = pytest.mark.countries   # module-scoped fixture resolves env from this
+
+COUNTRIES = CountriesDescriptor()    # explicit local instance (no module-level singleton)
 
 CASES = json.loads(
     (Path(__file__).parent.parent / "test_data" / "countries.json").read_text()
